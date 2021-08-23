@@ -49,6 +49,7 @@ async function main() {
     const push = !!token && !!pr;
 
     const localact = process.env.ACT;
+    var ret;
     // nektos/act doesn't support the cache action
     // so branch around it, using the envvar that it uses
     if (!localact) {
@@ -56,7 +57,7 @@ async function main() {
         const py = getPythonVersion();
         const cacheKey = `pre-commit-2-${hashString(py)}-${hashFile('.pre-commit-config.yaml')}`;
         const restored = await cache.restoreCache(cachePaths, cacheKey);
-        const ret = await exec.exec('pre-commit', args, {ignoreReturnCode: push});
+        ret = await exec.exec('pre-commit', args, {ignoreReturnCode: push});
         if (!restored) {
             try {
                 await cache.saveCache(cachePaths, cacheKey);
@@ -73,6 +74,9 @@ async function main() {
                 );
             }
         }
+    }
+    else {
+        ret = await exec.exec('pre-commit', args, { ignoreReturnCode: push });
     }
 
     if (ret && push) {
